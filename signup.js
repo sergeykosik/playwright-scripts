@@ -2,6 +2,13 @@ const { chromium } = require('playwright');
 const faker = require('faker/locale/de');
 const config = require('./config');
 
+/**
+ * Signs up the autoentry user.
+ * After successful run the New user email displayed.
+ * 
+ * To Run: node signup
+ */
+
 const baseUrl = config.baseUrl;
 const pass = config.psw;
 const stepperNextBtn = '//*[@id="wrapper"]/div/div[1]/div[2]/div/div[3]/div/button';

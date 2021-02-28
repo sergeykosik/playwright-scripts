@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "dotenv": "^8.2.0",
-    "faker": "^4.1.0"
+    "faker": "^4.1.0",
+    "request": "^2.88.2"
   }
 }

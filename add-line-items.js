@@ -1,16 +1,15 @@
 /**
- * The script populates the nominal / tax code / suppliers
+ * The script adds line items for the provided invoice id
  *
- * To Run: node add-line-items <user-email> <itemCount> <relative url>
+ * To Run: node add-line-items <user-email> <itemCount> <invoiceId> <workflowId>
  * 
- * e.g.: add-line-items email@example.com 10 '/companies/13/purchases/inbox/116?pageIndex=3&pageSize=50&showArchived=false&workflowId=49&totalcount=119'
+ * e.g.: add-line-items email@example.com 50 41 9
  *
  */
 
-const { chromium } = require("playwright");
 const faker = require("faker");
 const config = require("./config");
-const { logIn, getLineItemElmId } = require("./helpers");
+const { httpReq } = require("./helpers");
 
 const args = process.argv.slice(2);
 
@@ -18,80 +17,83 @@ const baseUrl = config.baseUrl;
 const pass = config.psw;
 const email = args[0];
 const itemCount = +args[1];
-const url = args[2];
+const invoiceId = args[2];
+const workflowId = args[3];
 
-const addBtnId = '//*[@id="lineitems"]/tfoot/tr[3]/td/a';
-const wait = 300; // in ms - if network is slow might need to encrease.
+var numList = Array(itemCount)
+  .fill()
+  .map((_, i) => i);
 
-(async () => {
-  const browser = await chromium.launch({
-    headless: false    
-  });
-  const context = await browser.newContext({
-    viewport: {
-        width: 1884, // document.documentElement.clientWidth,
-        height: 958// document.documentElement.clientHeight
-      }
-  });
-  const page = await context.newPage();
+let lineItems = [];
 
-  logIn(page, baseUrl, email, pass);
-  await page.waitForNavigation({ url: `${baseUrl}/companies` });
+for (let i of numList) {
+  const guid = faker.random.uuid().replace(/-/g, "");
+  const units = faker.random.number(10);
+  const price = faker.random.number(100);
+  const net = units * price;
+  const desc = faker.commerce.productName();
 
-  var numList = Array(itemCount)
-    .fill()
-    .map((_, i) => i);
+  lineItems.push(addLineItem(guid, desc, units, price, net));
+}
+
+const data = {
+  Code: "Supplier3",
+  InvoiceId: invoiceId,
+  IsShowArchived: null,
+  IsShowErrors: true,
+  LineItemDetails: lineItems,
+  WorkflowId: workflowId,
+};
+
+httpReq(email, pass, 'PUT',`${baseUrl}/invoices/codeswithrefresh?format=json`, data, (res) => {
+    console.log('updated invoice');
+});
 
 
-  //
-  // Add Line Items
-  //
-  await page.goto(`${baseUrl}${url}`);
-  await page.waitForTimeout(1000);
+//////////////////////////////////////////////////////////////
 
-  // await page.click("#addNewLineItemBtn");
-
-  const tableHeaderCols = await page.evaluate(async () => {
-    const theadRow = document.getElementById('lineitems').getElementsByTagName('thead')[0].rows[0];
-    const tableHeader = {};
-    for (let i = 0, col; col = theadRow.cells[i]; i++) {
-        tableHeader[col.innerText] = i;
-    }
-    return tableHeader;
-  });
-
-  console.log('tableHeaderCols', tableHeaderCols);
-
-  for (let i of numList) {
-
-    await page.click(addBtnId);
-    await page.waitForTimeout(wait);
-
-    let unitsId = getLineItemElmId(tableHeaderCols, 'Units', i);
-    let priceId = getLineItemElmId(tableHeaderCols, 'Price', i);
-    let descId = getLineItemElmId(tableHeaderCols, 'Description', i);
-    
-    const units = faker.random.number(10) + '';
-    const price = faker.random.number(100) + '';
-    const desc = faker.commerce.productName();
-
-    await page.fill(`#${unitsId}`, units);
-    await page.focus(`#${priceId}`);
-    await page.waitForTimeout(wait);
-    
-    await page.fill(`#${priceId}`, price);
-    await page.focus(`#${descId}`);
-    await page.waitForTimeout(wait);
-
-    await page.fill(`#${descId}`, desc);
-    await page.focus(`#${unitsId}`);
-    await page.waitForTimeout(wait);
-  }
-
-  await page.focus(addBtnId);
-  await page.click(addBtnId);
-  await page.waitForTimeout(wait);
-
-  await browser.close();
-})();
-
+function addLineItem(guid, details, units, price, net) {
+    return {
+        Guid: guid,
+        IsRemembered: false,
+        Units: {
+            Value: units, 
+            OcrValue: null
+        },
+        Price: {
+            Value: price, 
+            OcrValue: null
+        },
+        TotalCalculated: net,
+        Total: {
+            Value: null, 
+            OcrValue: null
+        },
+        NetCalculated: {
+            Value: net, 
+            OcrValue: null
+        },
+        Net: {
+            Value: null, 
+            OcrValue: null
+        },
+        NominalCode: '',
+        BillableCustomer: '',
+        IsBillable: true, 
+        IsProductCode: false,
+        IsTaxCodeSuggested: false,
+        Tax: {
+            Value: 0, 
+            OcrValue: null
+        },
+        Rate: null, 
+        TaxCalculatedFromRateChosen: 0,
+        TaxRateChosen: 0,
+        TaxCode: 'T0', 
+        CostCode: { 'CostCodeValue1': '', 'CostCodeValue2': '', CostCodeValue3: ''},
+        Details: details, 
+        IsCarriage: false, 
+        RateCalculated: 0, 
+        TaxDifference: 0
+    };
+}

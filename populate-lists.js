@@ -1,7 +1,7 @@
 /**
  * The script populates the nominal / tax code / suppliers
  *
- * To Run: node populate-lists email@example.com 43 true
+ * To Run: node populate-lists email@example.com <companyId> true
  *
  * to omit the cost codes generation, then don't pass 'true'
  */
@@ -20,6 +20,7 @@ const companyId = args[1];
 const withCostCodes = args.length > 2 ? args[2] === "true" : false;
 const count = 3;
 const costCodeCount = 2;
+const wait = 2000; // localhost: 1000, staging: 2000
 
 (async () => {
   const browser = await chromium.launch({
@@ -44,7 +45,7 @@ const costCodeCount = 2;
   // Add suppliers
   //
   await page.goto(`${baseUrl}/companies/${companyId}/contactslist/suppliers`);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   for (let i of numList) {
     const code = faker.random.uuid();
@@ -59,7 +60,7 @@ const costCodeCount = 2;
   // Add contacts
   //
   await page.goto(`${baseUrl}/companies/${companyId}/contactslist/customers`);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   for (let i of numList) {
     const code = faker.random.uuid();
@@ -74,21 +75,21 @@ const costCodeCount = 2;
   // Add Nominal codes
   //
   await page.goto(`${baseUrl}/companies/${companyId}/lists/categories`);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   await page.click('//*[@id="grid-component"]/div[1]/div/div[2]/form/button');
   await page.click('//*[@id="modalApplyItems"]/div/div/div[3]/button[1]');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   //
   // Add Tax codes
   //
   await page.goto(`${baseUrl}/companies/${companyId}/lists/taxcodes`);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   await page.click('//*[@id="grid-component"]/div[1]/div/div[2]/form/button');
   await page.click('//*[@id="modalApplyItems"]/div/div/div[3]/button[1]');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(wait);
 
   //
   // Add Cost codes
@@ -96,13 +97,13 @@ const costCodeCount = 2;
   if (withCostCodes) {
     for (let c of costCodeNums) {
       await page.goto(`${baseUrl}/companies/${companyId}/lists/costcodes${c+1}`);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(wait);
       const costCodeLabel = faker.random.word();
       await page.fill("#costCodeName", costCodeLabel);
       await page.click(
         '//*[@id="grid-component"]/div[1]/div/div[3]/form/button'
       );
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(wait);
 
       for (let i of numList) {
         const code = faker.random.uuid();

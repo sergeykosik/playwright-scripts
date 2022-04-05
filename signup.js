@@ -11,7 +11,10 @@ const config = require('./config');
 
 const baseUrl = config.baseUrl;
 const pass = config.psw;
-const stepperNextBtn = '//*[@id="wrapper"]/div/div[1]/div[2]/div/div[3]/div/button';
+const stepperNextBtn = '//*[@id="brochure-wrapper"]/div[1]/div[3]/div[2]/button';
+const stepperFinishBtn = '//*[@id="brochure-wrapper"]/div[1]/div[3]/div[2]/button[1]';
+const manualCheckboxLabel = '//*[@id="brochure-wrapper"]/div[1]/div[3]/ae-blockable-div/div/div/ae-integrations-step/div/div[3]/div[2]/div[1]/label';
+
 
 (async () => {
 
@@ -41,19 +44,17 @@ const stepperNextBtn = '//*[@id="wrapper"]/div/div[1]/div[2]/div/div[3]/div/butt
   await page.click('//html/body/ae-root/ae-public-layout/div[2]/div/div[1]/div/div/div/div/div[2]/div/ae-signup/div[2]/form[2]/div[5]/input');
 
   // Step 1
-  await page.waitForSelector('"Welcome to AutoEntry!"');
   await page.waitForSelector(stepperNextBtn);
   await page.click(stepperNextBtn);
 
   // Step 2
-  // wait for back btn in the company details step
-  await page.waitForSelector('//*[@id="wrapper"]/div/div[1]/div[2]/div/div[1]/div/button');
-  await page.click(stepperNextBtn);
+  await page.waitForSelector(manualCheckboxLabel);
+  await page.check(manualCheckboxLabel);
+  await page.waitForSelector(stepperFinishBtn);
+  await page.click(stepperFinishBtn);
 
-  // Step 3
-  await page.click('css=.btn.btn-link.skip-link');
-
-  await page.waitForNavigation({ url: `${baseUrl}/companies`});
+  // waiting for navbar "Help Center" button
+  await page.waitForSelector('//*[@id="navbarCollapse"]/ul[2]/li[1]/a');
 
   console.log(`New user: ${email}`);
 

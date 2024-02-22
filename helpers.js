@@ -5,9 +5,9 @@ function auth(username, password, redirectUrl) {
 async function logIn(page, baseUrl, email, pass) {
   await page.goto(`${baseUrl}/login2`);
   await page.fill("#inputEmail", email);
-  await page.click("css=.button.button-submit.w-button");
+  await page.click("#loginPage_next_button");
   await page.fill("#inputPassword", pass);
-  await page.click('//*[@id="email-container"]/div/form/div[3]/input');
+  await page.click('#loginPage_logIn_button');
 }
 
 function getLineItemElmId(cols, label, idx) {

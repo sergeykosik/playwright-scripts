@@ -3,8 +3,8 @@ const { performance } = require("perf_hooks");
 const { generateBasicAuth } = require("./helpers");
 const config = require('./config');
 
-const startNum = 57;
-const numOfIterations = 5;
+const startNum = 85;
+const numOfIterations = 10;
 
 const basicAuthHeader = generateBasicAuth(config.adminEmail, config.adminPass);
 

@@ -1,9 +1,5 @@
 /**
- * The script populates the nominal / tax code / suppliers
- *
- * To Run: node populate-lists email@example.com 43 true
- *
- * to omit the cost codes generation, then don't pass 'true'
+ * @deprecated This script is deprecated. Use create-contacts.js or manage-lists.js instead.
  */
 
 const { chromium } = require("playwright");
